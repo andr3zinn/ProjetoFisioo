@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="pt-BR">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Fisio — Uma medida mais clara</title><link rel="stylesheet" href="/app.css"><script src="/app.js" defer></script></head>
+<body>
+<aside class="sidebar">
+  <a class="brand" href="/" aria-label="Fisio início"><span class="brand-symbol">f<span>•</span></span><span>fisio<span class="brand-dot">.</span></span></a>
+  <div class="workspace-label">SEU ESPAÇO DE ANÁLISE</div>
+  <div class="nav-item active"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z"/></svg> Nova medição <span>＋</span></div>
+  <div class="sidebar-bottom"><div class="local-dot"></div><strong>Local por natureza</strong><p>A análise acontece neste computador. Suas fotos ficam com você.</p><span class="version">PROJETO FISIO · VERSÃO EXPERIMENTAL</span></div>
+</aside>
+<div class="shell">
+<header class="topbar"><div>Avaliação <span>/</span> <strong>Nova medição</strong></div><div class="local-badge" id="connectionStatus">Conectando ao serviço…</div></header>
+<main>
+<section class="intro"><div><div class="eyebrow">MENOS ETAPAS. MAIS CLAREZA.</div><h1>Uma imagem.<br>Uma medida mais clara<span>.</span></h1><p>Estime a área do antebraço e acompanhe cada detalhe<br class="desktop"> em uma análise visual, simples e organizada.</p></div><div class="intro-aside"><span class="mini-line"></span><p>Da foto à estimativa,<br>com você no controle.</p><small>Área projetada em 2D</small></div></section>
+<ol class="steps" aria-label="Etapas da medição"><li class="current" id="step1"><span>01</span> Escolha a foto</li><li id="step2"><span>02</span> Analise o segmento</li><li id="step3"><span>03</span> Revise e exporte</li></ol>
+<div class="analysis-grid">
+<section class="image-panel card">
+  <div class="panel-header"><div><span class="section-no">01 /</span><h2>Sua imagem</h2></div><button class="text-button" id="replace" disabled>Trocar foto <span>↗</span></button></div>
+  <div class="library-picker"><label for="librarySelect">Ou abra diretamente uma foto da pasta Imagens</label><select id="librarySelect" disabled><option value="">Selecione uma foto local para testar</option></select></div>
+  <div id="markingPrompt" class="marking-prompt" hidden role="status" aria-live="polite"></div>
+  <div class="photo-stage" id="dropzone">
+    <div class="upload-content" id="emptyState">
+      <div class="upload-icon"><svg viewBox="0 0 48 48" fill="none" aria-hidden="true"><rect x="8" y="6" width="32" height="36" rx="7"/><circle cx="19" cy="18" r="3"/><path d="m10 34 10-10 8 8 5-5 7 7"/></svg><span>＋</span></div>
+      <h3>O primeiro passo é uma boa foto.</h3><p>Arraste a imagem para cá ou selecione<br>um arquivo do seu computador.</p>
+      <button class="primary" id="choose">Selecionar foto <span>↗</span></button><small>JPG, PNG ou HEIC · até 30 MB</small>
+    </div>
+    <canvas id="canvas" hidden aria-label="Foto do antebraço. No ajuste manual, clique no cotovelo e depois no punho."></canvas>
+    <div id="busyOverlay" class="busy-overlay" hidden><span class="spinner"></span><strong id="busyTitle">Preparando sua foto</strong><p id="busyText">Isso pode levar alguns instantes.</p></div>
+  </div>
+  <div class="image-toolbar"><div class="filename" id="filename">Nenhuma foto selecionada</div><button class="text-button" id="zoom" disabled>Ampliar seções ↗</button><div class="view-toggle" aria-label="Visualização"><button id="original" class="selected" disabled>Original</button><button id="overlay" disabled>Fatias</button></div></div>
+  <div class="hint" id="photoHint"><span>↳</span> Inclua cotovelo, punho e um marcador de tamanho conhecido na foto.</div>
+  <input id="file" type="file" accept=".jpg,.jpeg,.png,.heic,.heif" hidden>
+</section>
+<aside class="settings-panel card">
+  <div class="panel-header"><div><span class="section-no">02 /</span><h2>Prepare a análise</h2></div><span class="small-icon">⌘</span></div>
+  <form id="form">
+    <label for="method">Marcador de referência</label><select id="method"><option value="circulo">Círculo verde</option><option value="aruco">ArUco · 4×4</option></select>
+    <div class="field-row"><div><label for="size" id="sizeLabel">Diâmetro real</label><div class="unit-field"><input id="size" type="number" min="1" max="200" step="0.1" value="19" required><span>mm</span></div></div><div><label for="slice">Tamanho da fatia</label><div class="unit-field"><input id="slice" type="number" min="0.5" max="20" step="0.5" value="5" required><span>cm</span></div></div></div>
+    <div id="arucoField" hidden><label for="markerId">ID do marcador</label><input id="markerId" type="number" min="0" max="49" value="0"></div>
+    <div class="settings-note"><span>i</span><p>Use o tamanho físico do marcador. Ele é a referência para converter pixels em medidas.</p></div>
+    <button type="button" class="secondary" id="markTag" disabled>1. Conferir o diâmetro da tag</button>
+    <p id="tagInstructions" class="tag-instructions">Se a tag não for reconhecida, marque os dois extremos do diâmetro na foto. Confirme o tamanho real acima.</p>
+    <button type="submit" id="analyze" class="primary analyze" disabled>Estimar medidas <span>→</span></button>
+    <p class="button-caption">Estimativa provisória · modelo sem validação física</p>
+  </form>
+  <div class="manual-section"><div class="manual-heading"><span>Limites do segmento</span><span>↘</span></div><p>Estes dois pontos são do braço, não da tag. Marque cotovelo e punho na foto.</p><button class="secondary" id="manual" disabled>2. Marcar cotovelo e punho</button><div id="manualOptions" hidden><label for="side">Lado do braço</label><select id="side"><option value="não informado">Não informado</option><option value="esquerdo">Esquerdo</option><option value="direito">Direito</option></select><p id="pointInstructions">1. Clique no cotovelo.<br>2. Clique no punho.</p><button id="measureManual" class="primary" disabled>Medir com os dois pontos →</button><button id="cancelManual" class="text-button">Limpar pontos / voltar ao automático</button></div></div>
+</aside>
+</div>
+<div id="status" class="status-message" role="status" aria-live="polite" hidden></div>
+<section id="recovery" class="recovery" hidden aria-live="polite"><h2 id="recoveryTitle"></h2><p id="recoveryText"></p><button id="continueRecovery" class="primary">Continuar na foto →</button></section>
+<section class="results card" id="results" hidden>
+  <div class="results-heading"><div><div class="eyebrow">SUA ESTIMATIVA</div><h2>Os detalhes da medida.</h2></div><a id="download" class="secondary" href="#">Baixar relatório <span>↓</span></a></div>
+  <div class="result-content" id="resultContent"><div class="metric-column"><label for="armSelect">Segmento em análise</label><select id="armSelect"></select><div class="metric"><span id="total">—</span><small>cm²</small></div><p>Área projetada total — não é circunferência</p><div class="review-badge">● Revisão visual necessária</div><p class="metric-footnote">A soma das áreas por fatia do segmento selecionado.</p><div class="length-card"><span>Comprimento estimado<br>cotovelo → punho</span><strong id="lengthValue">— cm</strong></div></div><div class="table-wrap"><table><caption>Seções: trecho em cm, área em cm²</caption><thead><tr><th>Seção</th><th>Trecho (cm)</th><th>Área projetada (cm²)</th><th>Largura média projetada (cm)</th></tr></thead><tbody id="sliceRows"></tbody><tfoot><tr><td colspan="2">Área total (cm²)</td><td id="tableTotal">—</td><td>—</td></tr></tfoot></table><p class="unit-explanation" id="unitExplanation">Área não é comprimento nem circunferência. O programa não mede o contorno ao redor do braço.</p></div></div>
+  <section class="conversion"><h3>Da imagem à unidade física</h3><p id="conversionText"></p><p id="geometryText"></p><p>Os pixels são contados na resolução processada. Não representam circunferência ou superfície 3D.</p></section>
+  <details class="quality" open><summary>O que conferir nesta análise</summary><ul id="qualityList"></ul></details>
+</section>
+<section class="acquisition"><div class="acquisition-title"><span>UMA BOA FOTO FAZ DIFERENÇA</span><h2>Prepare a captura.</h2></div><div><span class="tip-number">01</span><h3>Enquadre o segmento</h3><p>Cotovelo e punho visíveis, braço apoiado e sem acessórios.</p></div><div><span class="tip-number">02</span><h3>Cuide da referência</h3><p>Marcador nítido e próximo da mesma profundidade do braço.</p></div><div><span class="tip-number">03</span><h3>Prefira luz uniforme</h3><p>Fundo simples, sem sombras fortes e câmera perpendicular.</p></div></section>
+<footer><span>fisio<span class="brand-dot">.</span> <small>Tecnologia a favor do cuidado.</small></span><p>Estimativa experimental de área projetada 2D.<br>Não estima volume ou superfície curva e não substitui avaliação clínica.</p></footer>
+</main></div>
+<dialog id="zoomDialog" aria-label="Seções e áreas ampliadas"><div class="zoom-heading"><strong>Seções e áreas · confira os limites e a tag</strong><button class="secondary" id="closeZoom">Fechar ✕</button></div><div class="zoom-scroll"><img id="zoomImage" alt="Imagem ampliada com contornos, limites de seções e áreas em pixels e cm²"></div></dialog>
+<dialog id="tagDialog" aria-labelledby="tagDialogTitle"><div class="zoom-heading"><strong id="tagDialogTitle">Diâmetro do adesivo de referência</strong><button type="button" class="secondary" id="tagCancel">Fechar ✕</button></div><p class="tag-dialog-help">Marque duas bordas opostas do círculo, passando pelo centro. <strong>Não marque cotovelo e punho aqui.</strong></p><div class="tag-canvas-wrap"><canvas id="tagCanvas" aria-label="Marcador ampliado para marcar o diâmetro"></canvas></div><p id="tagDialogInstruction" role="status" aria-live="polite"></p><div class="tag-actions"><button type="button" id="tagReset" class="secondary">Refazer marcação</button><button type="button" id="tagAuto" class="secondary">Usar marcador detectado e medir</button><button type="button" id="tagApply" class="primary" disabled>Usar este diâmetro e continuar →</button></div></dialog>
+</body></html>
